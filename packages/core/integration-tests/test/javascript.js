@@ -352,7 +352,16 @@ describe('javascript', function() {
     assertBundles(b, [
       {
         name: 'index.js',
-        assets: ['index.js', 'common.js', 'worker-client.js', 'feature.js'],
+        assets: [
+          'index.js',
+          'common.js',
+          'worker-client.js',
+          'feature.js',
+          'bundle-url.js',
+          'JSRuntime.js',
+          'JSRuntime.js',
+          'JSRuntime.js',
+        ],
       },
       {
         assets: ['service-worker.js'],
@@ -378,7 +387,7 @@ describe('javascript', function() {
       },
       {
         name: 'index.js',
-        assets: ['index.js'],
+        assets: ['index.js', 'bundle-url.js', 'JSRuntime.js', 'JSRuntime.js'],
       },
       {
         assets: ['shared-worker.js'],
@@ -419,6 +428,10 @@ describe('javascript', function() {
           'common.js',
           'worker-client.js',
           'feature.js',
+          'bundle-url.js',
+          'JSRuntime.js',
+          'JSRuntime.js',
+          'JSRuntime.js',
         ],
       },
       {
@@ -445,7 +458,7 @@ describe('javascript', function() {
       assertBundles(b, [
         {
           name: `index-${workerType}.js`,
-          assets: [`index-${workerType}.js`],
+          assets: [`index-${workerType}.js`, 'bundle-url.js', 'JSRuntime.js'],
         },
         {
           assets: ['importScripts.js'],
@@ -470,8 +483,13 @@ describe('javascript', function() {
       );
 
       assert(
-        workerBundleContents.match(
-          /importScripts\("\/imported\.[0-9a-f]*\.js"\);\nimportScripts\("\/imported\.[0-9a-f]*\.js", "\/imported2\.[0-9a-f]*\.js"\);/,
+        workerBundleContents.includes(
+          'importScripts(require("imported.js"));\n',
+        ),
+      );
+      assert(
+        workerBundleContents.includes(
+          'importScripts(require("imported.js"), require("imported2.js"));\n',
         ),
       );
     });
@@ -486,7 +504,10 @@ describe('javascript', function() {
     );
 
     assertBundles(b, [
-      {name: 'index-external.js', assets: ['index-external.js']},
+      {
+        name: 'index-external.js',
+        assets: ['index-external.js', 'bundle-url.js', 'JSRuntime.js'],
+      },
       {assets: ['external.js']},
     ]);
 
@@ -516,7 +537,13 @@ describe('javascript', function() {
     assertBundles(b, [
       {
         name: 'index.js',
-        assets: ['index.js', 'index.js'],
+        assets: [
+          'index.js',
+          'index.js',
+          'bundle-url.js',
+          'JSRuntime.js',
+          'JSRuntime.js',
+        ],
       },
       {
         assets: ['worker-nested.js'],
@@ -535,7 +562,7 @@ describe('javascript', function() {
     assertBundles(b, [
       {
         name: 'index.js',
-        assets: ['index.js'],
+        assets: ['index.js', 'bundle-url.js', 'JSRuntime.js'],
       },
       {
         assets: ['worker.js', 'worker-dep.js'],
@@ -586,7 +613,13 @@ describe('javascript', function() {
     assertBundles(b, [
       {
         name: 'index.js',
-        assets: ['index.js', 'lodash.js'],
+        assets: [
+          'index.js',
+          'lodash.js',
+          'bundle-url.js',
+          'JSRuntime.js',
+          'JSRuntime.js',
+        ],
       },
       {
         assets: ['worker-a.js'],
@@ -619,7 +652,7 @@ describe('javascript', function() {
         assets: ['index.html'],
       },
       {
-        assets: ['index.js'],
+        assets: ['index.js', 'bundle-url.js', 'JSRuntime.js', 'JSRuntime.js'],
       },
       {
         assets: ['worker.js'],

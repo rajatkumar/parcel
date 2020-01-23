@@ -41,7 +41,8 @@ export default ({
       args.length === 1 &&
       types.isStringLiteral(args[0]) &&
       !hasBinding(ancestors, 'require') &&
-      !isInFalsyBranch(ancestors);
+      !isInFalsyBranch(ancestors) &&
+      !node.skipDependency;
 
     if (isRequire) {
       let isOptional =
@@ -80,7 +81,7 @@ export default ({
     if (isRegisterServiceWorker) {
       // Treat service workers as an entry point so filenames remain consistent across builds.
       // https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle#avoid_changing_the_url_of_your_service_worker_script
-      addURLDependency(asset, args[0], {
+      addWorkerDependency(asset, args[0], {
         isEntry: true,
         env: {context: 'service-worker'},
       });
@@ -95,7 +96,7 @@ export default ({
     if (isImportScripts) {
       for (let arg of args) {
         if (types.isStringLiteral(arg)) {
-          addURLDependency(asset, arg);
+          addWorkerDependency(asset, arg);
         }
       }
       return;
@@ -123,7 +124,7 @@ export default ({
           isModule = prop.value.value === 'module';
       }
 
-      addURLDependency(asset, args[0], {
+      addWorkerDependency(asset, args[0], {
         env: {
           context: 'web-worker',
           outputFormat: isModule && options.scopeHoist ? 'esmodule' : undefined,
@@ -291,11 +292,19 @@ function addDependency(
   });
 }
 
-function addURLDependency(asset, node, opts = {}) {
-  node.value = asset.addURLDependency(node.value, {
+function addWorkerDependency(asset, node, opts = {}) {
+  let url = node.value;
+  asset.addURLDependency(url, {
     loc: node.loc && createDependencyLocation(node.loc.start, node.value, 0, 1),
     ...opts,
   });
+  morph(
+    node,
+    types.callExpression(types.identifier('require'), [
+      types.stringLiteral(url),
+    ]),
+  );
+  node.skipDependency = true;
   invariant(asset.ast);
   asset.ast.isDirty = true;
 }
