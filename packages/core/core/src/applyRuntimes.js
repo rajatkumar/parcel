@@ -1,11 +1,11 @@
 // @flow strict-local
 
+import type {ContentKey} from '@parcel/graph';
 import type {Dependency, NamedBundle as INamedBundle} from '@parcel/types';
 import type {SharedReference} from '@parcel/workers';
 import type {
   AssetGroup,
   Bundle as InternalBundle,
-  ContentKey,
   Config,
   DevDepRequest,
   ParcelOptions,
@@ -20,7 +20,7 @@ import invariant from 'assert';
 import nullthrows from 'nullthrows';
 import AssetGraph, {nodeFromAssetGroup} from './AssetGraph';
 import BundleGraph from './public/BundleGraph';
-import InternalBundleGraph from './BundleGraph';
+import InternalBundleGraph, {bundleGraphEdgeTypes} from './BundleGraph';
 import {NamedBundle} from './public/Bundle';
 import {PluginLogger} from '@parcel/logger';
 import {hashString} from '@parcel/hash';
@@ -69,7 +69,7 @@ export default async function applyRuntimes({
           bundle: NamedBundle.get(bundle, bundleGraph, options),
           bundleGraph: new BundleGraph<INamedBundle>(
             bundleGraph,
-            NamedBundle.get,
+            NamedBundle.get.bind(NamedBundle),
             options,
           ),
           config: configs.get(runtime.name)?.result,
@@ -125,7 +125,6 @@ export default async function applyRuntimes({
         specifier: runtime.name,
         resolveFrom: runtime.resolveFrom,
       },
-      runtime,
       previousDevDeps,
       options,
     );
@@ -219,7 +218,11 @@ export default async function applyRuntimes({
         const bundleGraphNodeId = bundleGraph._graph.getNodeIdByContentKey(
           node.id,
         ); // the node id is not constant between graphs
-        bundleGraph._graph.addEdge(bundleNodeId, bundleGraphNodeId, 'contains');
+        bundleGraph._graph.addEdge(
+          bundleNodeId,
+          bundleGraphNodeId,
+          bundleGraphEdgeTypes.contains,
+        );
       }
     }, runtimesGraphRuntimeNodeId);
 
